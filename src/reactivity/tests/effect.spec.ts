@@ -79,6 +79,8 @@ describe("effect", () => {
 
     //stop的runner应该仍然可以手动调用
   });
+
+  //实现onStop回调函数
   it("onStop", () => {
     const obj = reactive({
       foo: 1,
