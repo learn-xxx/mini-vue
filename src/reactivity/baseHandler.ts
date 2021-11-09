@@ -1,3 +1,4 @@
+import { ReactiveFlags } from "../shared";
 import { track, trigger } from "./effect";
 
 //第一次生成，缓存下来，不需要每次都生成一个新的
@@ -7,6 +8,12 @@ const readonlyGet = createGetter(true);
 
 function createGetter(isReadOnly: Boolean = false) {
   return function get(target, key) {
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadOnly;
+    } else if (key === ReactiveFlags.IS_READONLY) {
+      return isReadOnly;
+    }
+
     const res = Reflect.get(target, key);
     if (!isReadOnly) {
       //收集依赖

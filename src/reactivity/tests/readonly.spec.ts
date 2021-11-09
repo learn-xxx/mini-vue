@@ -1,3 +1,4 @@
+import { isReadOnly } from "../../shared";
 import { readonly } from "../reactive";
 describe("readonly", () => {
   it("happy path", () => {
@@ -5,6 +6,8 @@ describe("readonly", () => {
     const wrapper = readonly(original);
     expect(wrapper).not.toBe(original);
     expect(wrapper.foo).toBe(1);
+    expect(isReadOnly(wrapper)).toBe(true);
+    expect(isReadOnly(original)).toBe(false);
   });
   it("warn when call set", () => {
     console.warn = jest.fn();
