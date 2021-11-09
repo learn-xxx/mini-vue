@@ -76,21 +76,30 @@ export function track(target: Object, key) {
 
   //如果dep中已经存在，直接返回
   if (dep.has(activeEffect)) return;
+
+  trackEffects(dep);
+}
+
+export function trackEffects(dep) {
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
 }
 
-function isTracking(): Boolean {
+export function isTracking(): Boolean {
   //是否开启收集依赖 & 是否有依赖
   return shouldTrack && activeEffect !== undefined;
 }
 
 //一次性触发对应target中key的所有依赖
 export function trigger(target, key) {
-  let depsMap = targetMap.get(target);
-  let deps = depsMap.get(key);
+  let depMap = targetMap.get(target);
+  let dep = depMap.get(key);
 
-  for (const effect of deps) {
+  triggerEffects(dep);
+}
+
+export function triggerEffects(dep) {
+  for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
     } else {
