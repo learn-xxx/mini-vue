@@ -74,7 +74,10 @@ describe("effect", () => {
     obj.prop = 2;
     expect(dummy).toBe(2);
     stop(runner);
-    obj.prop = 3;
+    // obj.prop = 3;
+    //obj.prop = obj.prop + 1
+    //get时,会重新收集依赖，set触发依赖
+    obj.prop++;
     expect(dummy).toBe(2);
 
     //stop的runner应该仍然可以手动调用

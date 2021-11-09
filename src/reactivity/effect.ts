@@ -1,3 +1,6 @@
+let activeEffect: ReactiveEffect; //当前的依赖
+let shouldTrack: Boolean; //是否收集依赖
+
 //响应式依赖 — 类
 class ReactiveEffect {
   private _fn: any;
@@ -13,8 +16,19 @@ class ReactiveEffect {
   run() {
     //用户函数，可以报错，需要用try包裹
     try {
+      //如果当前依赖不是激活状态，不进行依赖收集，直接返回
+      if (!this.active) {
+        return this._fn();
+      }
+      //开启依赖收集
+      shouldTrack = true;
       activeEffect = this;
-      return this._fn();
+      //调用时会触发依赖收集
+      const result = this._fn();
+      //关闭依赖收集
+      shouldTrack = false;
+      //返回结果
+      return result;
     } finally {
       //todo
     }
@@ -35,27 +49,21 @@ function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 }
 
-const targetMap = new WeakMap();
+const targetMap = new Map();
 // targetMap:{
 //   [target:Map]:{
 //     [key: Set]:[]
 //   }
 // }
 
-//WeakMap和Map的区别
-// 1、WeakMap只接受对象作为key，如果设置其他类型的数据作为key，会报错。
-// 2、WeakMap的key所引用的对象都是弱引用，只要对象的其他引用被删除，垃圾回收机制就会释放该对象占用的内存，从而避免内存泄漏。
-// 3、由于WeakMap的成员随时可能被垃圾回收机制回收，成员的数量不稳定，所以没有size属性。
-// 4、没有clear()方法
-// 5、不能遍历
-
 //把依赖添加到targetMap对应target的key中，在重新set时在trigger中重新触发
 export function track(target: Object, key) {
-  if (!activeEffect) {
-    return;
-  }
+  //如果不是track的状态，直接返回
+  if (!isTracking()) return;
+
   // target -> key -> dep
   let depsMap = targetMap.get(target);
   if (!depsMap) {
@@ -65,9 +73,18 @@ export function track(target: Object, key) {
   if (!dep) {
     depsMap.set(key, (dep = new Set()));
   }
+
+  //如果dep中已经存在，直接返回
+  if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
 }
+
+function isTracking(): Boolean {
+  //是否开启收集依赖 & 是否有依赖
+  return shouldTrack && activeEffect !== undefined;
+}
+
 //一次性触发对应target中key的所有依赖
 export function trigger(target, key) {
   let depsMap = targetMap.get(target);
@@ -81,8 +98,6 @@ export function trigger(target, key) {
     }
   }
 }
-
-let activeEffect: ReactiveEffect; //当前的依赖
 
 //创建一个依赖
 export function effect(fn, option: any = {}) {
