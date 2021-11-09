@@ -1,5 +1,4 @@
-import { isReactive, isReadOnly } from "../../shared";
-import { reactive } from "../reactive";
+import { reactive, isReactive, isProxy } from "../reactive";
 
 describe("reactive", () => {
   it("main", () => {
@@ -9,7 +8,7 @@ describe("reactive", () => {
     expect(observed.foo).toBe(1);
     expect(isReactive(observed)).toBe(true);
     expect(isReactive(original)).toBe(false);
-    expect(isReadOnly(observed)).toBe(false);
+    expect(isProxy(observed)).toBe(true);
   });
 
   it("nested reactive", () => {

@@ -1,6 +1,6 @@
-import { extend, isObject, ReactiveFlags } from "../shared";
+import { extend, isObject } from "../shared";
 import { track, trigger } from "./effect";
-import { reactive, readonly } from "./reactive";
+import { reactive, readonly, ReactiveFlags } from "./reactive";
 
 //第一次生成，缓存下来，不需要每次都生成一个新的
 const get = createGetter();
