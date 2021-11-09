@@ -1,6 +1,6 @@
 export const enum ReactiveFlags {
   IS_REACTIVE = "__v_isReactive",
-  IS_READONLY = "__v_isReadOnly"
+  IS_READONLY = "__v_isReadOnly",
 }
 
 export function isObject(target) {
@@ -12,6 +12,7 @@ export function isReactive(target) {
 }
 
 export function isReadOnly(target) {
-  return !!target[ReactiveFlags.IS_READONLY]
-  
+  return !!target[ReactiveFlags.IS_READONLY];
 }
+
+export const extend = Object.assign;
