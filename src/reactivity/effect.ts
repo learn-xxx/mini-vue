@@ -1,3 +1,5 @@
+import { extend } from "../shared";
+
 let activeEffect: ReactiveEffect; //当前的依赖
 let shouldTrack: Boolean; //是否收集依赖
 
@@ -69,15 +71,15 @@ export function track(target: Object, key) {
   if (!depsMap) {
     targetMap.set(target, (depsMap = new Map()));
   }
-  let dep = depsMap.get(key);
-  if (!dep) {
-    depsMap.set(key, (dep = new Set()));
+  let depSet = depsMap.get(key);
+  if (!depSet) {
+    depsMap.set(key, (depSet = new Set()));
   }
 
-  //如果dep中已经存在，直接返回
-  if (dep.has(activeEffect)) return;
+  //如果depSet中已经存在，直接返回
+  if (depSet.has(activeEffect)) return;
 
-  trackEffects(dep);
+  trackEffects(depSet);
 }
 
 export function trackEffects(dep) {
@@ -112,7 +114,7 @@ export function triggerEffects(dep) {
 export function effect(fn, option: any = {}) {
   //为当前的依赖创建响应式实例
   const _effect = new ReactiveEffect(fn, option.scheduler);
-  Object.assign(_effect, option);
+  extend(_effect, option);
   //最开始调用一次
   _effect.run();
   const runner: any = _effect.run.bind(_effect);

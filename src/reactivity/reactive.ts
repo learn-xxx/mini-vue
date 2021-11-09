@@ -22,7 +22,6 @@ export function isProxy(target) {
 }
 
 export function reactive(raw) {
-  //直接返回一个Proxy对象，实现响应式
   return createActiveObject(raw, mutableHandlers);
 }
 
@@ -35,5 +34,6 @@ export function shallowReadonly(raw) {
 }
 
 function createActiveObject(raw: any, baseHandlers) {
+  //直接返回一个Proxy对象，实现响应式
   return new Proxy(raw, baseHandlers);
 }
