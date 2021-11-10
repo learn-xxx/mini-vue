@@ -4,13 +4,13 @@ let activeEffect: ReactiveEffect; //当前的依赖
 let shouldTrack: Boolean; //是否收集依赖
 
 //响应式依赖 — 类
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any;
   active = true; //表示当前依赖是否激活，如果清除过则为false
   deps: any[] = []; //包含该依赖的deps
   onStop?: () => void;
-
   public scheduler: Function;
+
   constructor(fn, scheduler?) {
     this._fn = fn;
     this.scheduler = scheduler;
