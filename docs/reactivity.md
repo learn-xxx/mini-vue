@@ -1,4 +1,4 @@
-# 【手写vue3系列】响应式实现（reactive）
+# 【手写vue3系列】响应式实现
 
 ## （一）文章基础
 
@@ -10,7 +10,7 @@ github：https://github.com/Merlin218/my-mini-vue
 
 gitee：https://gitee.com/merlin218/my-mini-vue
 
-学习参考：崔大 guide-mini-vue  https://github.com/cuixiaorui/guide-mini-vue
+学习参考：崔大 mini-vue  https://github.com/cuixiaorui/mini-vue
 
 ## 	（二）响应式原理
 
@@ -98,7 +98,7 @@ function createSetter() {
 //全局变量
 let activeEffect: ReactiveEffect; //当前的依赖
 let shouldTrack: Boolean; //是否收集依赖
-const targetMap = new Map(); //依赖树
+const targetMap = new WeakMap(); //依赖树
 ```
 
 > 结构：
@@ -116,6 +116,18 @@ const targetMap = new Map(); //依赖树
 > ​	}
 >
 > }
+
+> *WeakMap和Map的区别*
+>
+> *1、WeakMap只接受对象作为key，如果设置其他类型的数据作为key，会报错。*
+>
+> *2、WeakMap的key所引用的对象都是弱引用，只要对象的其他引用被删除，垃圾回收机制就会释放该对象占用的内存，从而避免内存泄漏。*
+>
+> *3、由于WeakMap的成员随时可能被垃圾回收机制回收，成员的数量不稳定，所以没有size属性。*
+>
+> *4、没有clear()方法*
+>
+> *5、不能遍历*
 
 首先我们定义一个依赖类，称为ReactiveEffect，对用户函数进行包装，赋予一些属性和方法。
 
@@ -280,9 +292,243 @@ export function stop(runner) {
 }
 ```
 
+## （四）衍生类型
 
+### 1、实现readonly
 
-### 4、工具类
+readonly相比于reactive，实现上相对比较简单，它是一个只读类型，不会涉及set操作，更不需要收集/触发依赖。
+
+```typescript
+export function readonly(raw) {
+  return createActiveObject(raw, readonlyHandlers);
+}
+
+export const readonlyHandlers = {
+  get: readonlyGet,
+  set: (key, target) => {
+    console.warn(`key:${key} set 失败，因为target是一个readonly对象`, target);
+    return true;
+  },
+};
+
+const readonlyGet = createGetter(true);
+
+function createGetter(isReadOnly: Boolean = false, shallow: Boolean = false) {
+  return function get(target, key) {
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      return !isReadOnly;
+    } else if (key === ReactiveFlags.IS_READONLY) {
+      return isReadOnly;
+    }
+
+    //...
+
+    // 看看res是否是一个object
+    if (isObject(res)) {
+      return isReadOnly ? readonly(res) : reactive(res);
+    }
+
+    if (!isReadOnly) {
+      //收集依赖
+      track(target, key);
+    }
+    return res;
+  };
+}
+```
+
+### 2、实现shallowReadonly
+
+我们先看一下shallow的含义
+
+>  shallow：不深的, 浅的，不深的, 不严肃的, 肤浅的，浅薄的。
+
+那么shallowReadonly，指的是只对最外层进行限制，而内部的仍然是一个普通的、正常的值。
+
+```typescript
+//shallowReadonly.ts
+export function shallowReadonly(raw) {
+  return createActiveObject(raw, shallowReadonlyHandlers);
+}
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shallowReadonlyGet,
+});
+
+const shallowReadonlyGet = createGetter(true, true);
+
+function createGetter(isReadOnly: Boolean = false, shallow: Boolean = false) {
+  return function get(target, key) {
+    //..
+    const res = Reflect.get(target, key);
+    
+    //是否shallow,是的话很直接返回
+    if (shallow) {
+      return res;
+    }
+    
+    if (isObject(res)) {
+      //...
+    }
+  };
+}
+```
+
+### 3、实现ref
+
+ref相对reactive而言，实际上他不存在嵌套关系，就是一个value。
+
+```typescript
+//ref.ts
+export function ref(value: any) {
+  return new RefImpl(value);
+}
+```
+
+我们来实现一下RefImpl类，原理其实跟reactive类似，只是一些细节处不同。
+
+```typescript
+//ref.ts
+class RefImpl {
+  private _value: any; //转化后的值
+  public dep; //依赖容器
+  private _rawValue: any; //原始值，
+  public _v_isRef = true; //判断ref类型
+  constructor(value) {
+    this._rawValue = value; //记录原始值
+    this._value = convert(value); //存储转化后的值
+    this.dep = new Set(); //创建依赖容器
+  }
+  get value() {
+    trackRefValue(this); //收集依赖
+    return this._value;
+  }
+  set value(newValue) {
+    //新老值不同，才触发更改
+    if (hasChanged(newValue, this._rawValue)) {
+      // 一定先修改value，再触发依赖
+      this._rawValue = newValue;
+      this._value = convert(newValue);
+      triggerEffects(this.dep);
+    }
+  }
+}
+```
+
+```typescript
+//ref.ts
+//对value进行转换（value可能是object）
+export function convert(value: any) {
+  return isObject(value) ? reactive(value) : value;
+}
+
+export function trackRefValue(ref: RefImpl) {
+  if (isTracking()) {
+    trackEffects(ref.dep);
+  }
+}
+
+//effect.ts
+export function isTracking(): Boolean {
+  //是否开启收集依赖 & 是否有依赖
+  return shouldTrack && activeEffect !== undefined;
+}
+
+export function trackEffects(dep) {
+  dep.add(activeEffect);
+  activeEffect.deps.push(dep);
+}
+
+export function triggerEffects(dep) {
+  for (const effect of dep) {
+    if (effect.scheduler) {
+      effect.scheduler();
+    } else {
+      effect.run();
+    }
+  }
+}
+```
+
+- 实现proxyRefs
+
+  ```typescript
+  //实现对ref对象进行代理
+  //如user = {
+  //  age:ref(10),
+  //  ...
+  //}
+  export function proxyRefs(ObjectWithRefs) {
+    return new Proxy(ObjectWithRefs, {
+      get(target, key) {
+        // 如果是ref 返回.value
+        //如果不是 返回value
+        return unRef(Reflect.get(target, key));
+      },
+      set(target, key, value) {
+        if (isRef(target[key]) && !isRef(value)) {
+          target[key].value = value;
+          return true; //?
+        } else {
+          return Reflect.set(target, key, value);
+        }
+      },
+    });
+  }
+  ```
+
+### 4、实现computed
+
+computed的实现也很巧妙，利用调度器机制和一个私有变量_value，实现**缓存**和**惰性求值**。
+
+通过注解（一）（二）（三）可理解其实现流程
+
+```typescript
+//computed
+import { ReactiveEffect } from "./effect";
+
+class computedRefImpl {
+  private _dirty: boolean = true;
+  private _effect: ReactiveEffect;
+  private _value: any;
+
+  constructor(getter) {
+    //创建时，会创建一个响应式实例，并且挂载
+    this._effect = new ReactiveEffect(getter, () => {
+      //（三）
+      //当监听的值发生改变时，会触发set，此时触发当前依赖
+      //因为存在调度器，不会立刻执行用户fn（实现了lazy），而是将_dirty更改为true
+      //在下一次用户get时，会调用run方法，重新拿到最新的值返回
+      if (!this._dirty) {
+        this._dirty = true;
+      }
+    });
+  }
+
+  get value() {
+    //（一）
+    //默认_dirty是true
+    //那么在第一次get的时候，会触发响应式实例的run方法，触发依赖收集
+    //同时拿到用户fn的值，存储起来，然后返回出去
+    if (this._dirty) {
+      this._dirty = false;
+      this._value = this._effect.run();
+    }
+    //（二）
+    //当监听的值没有改变时，_dirty一直为false
+    //所以，第二次get时，因为_dirty为false，那么直接返回存储起来的_value
+    return this._value;
+  }
+}
+
+export function computed(getter) {
+  //创建一个computed实例
+  return new computedRefImpl(getter);
+}
+
+```
+
+## （五）工具类
 
 ```typescript
 //是否是reactive响应式类型
@@ -301,6 +547,18 @@ export function isProxy(target) {
 export function isObject(target) {
   return typeof target === "object" && target !== null;
 }
+//是否是ref
+export function isRef(ref: any) {
+  return !!ref._v_isRef;
+}
+//解构ref
+export function unRef(ref: any) {
+  return isRef(ref) ? ref.value : ref;
+}
+//是否改变
+export const hasChanged = (val, newVal) => {
+  return !Object.is(val, newVal);
+};
 ```
 
 判断响应式类型的依据是，在get的时候，**检查传进来的key是否等于某枚举值**来做为判断依据，在get中加入

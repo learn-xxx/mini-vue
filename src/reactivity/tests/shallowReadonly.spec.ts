@@ -1,4 +1,4 @@
-import { shallowReadonly, isReadOnly } from "../reactive";
+import { shallowReadonly, isReadOnly, isReactive } from "../reactive";
 describe("shallowReadonly", () => {
   it("should not make non-reactive properties reactive", () => {
     const props = shallowReadonly({ n: { foo: 1 } });

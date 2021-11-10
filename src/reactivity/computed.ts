@@ -6,7 +6,7 @@ class computedRefImpl {
   private _value: any;
 
   constructor(getter) {
-    //在第一次创建时，会创建一个响应式实例，并且挂载
+    //创建时，会创建一个响应式实例，并且挂载
     this._effect = new ReactiveEffect(getter, () => {
       //（三）
       //当监听的值发生改变时，会触发set，此时触发当前依赖

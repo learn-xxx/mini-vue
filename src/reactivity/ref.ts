@@ -27,12 +27,12 @@ class RefImpl {
   }
 }
 
-export function convert(value: any) {
-  return isObject(value) ? reactive(value) : value;
-}
-
 export function ref(value: any) {
   return new RefImpl(value);
+}
+
+export function convert(value: any) {
+  return isObject(value) ? reactive(value) : value;
 }
 
 export function trackRefValue(ref: RefImpl) {
