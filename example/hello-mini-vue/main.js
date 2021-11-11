@@ -1,3 +1,4 @@
 import { App } from "./App.js";
-
-createApp(App).mount("#app");
+import { createApp } from "../../lib/mini-vue.esm.js";
+const app = document.querySelector("#app");
+createApp(App).mount(app);
