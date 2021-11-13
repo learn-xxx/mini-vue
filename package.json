@@ -6,7 +6,7 @@
   "module": "/lib/mini-vue.esm.js",
   "scripts": {
     "test": "jest --watchAll",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js --watch"
   },
   "keywords": [],
   "author": "",

@@ -1,6 +1,6 @@
 export function createVNode(type, props?, children?) {
   const vnode = {
-    type, // rootComponent
+    type, // component或element
     props,
     children,
   };
