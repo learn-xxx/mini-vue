@@ -1,4 +1,5 @@
 import { isObject } from "../shared/index";
+import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render(vnode, container) {
@@ -9,9 +10,9 @@ export function render(vnode, container) {
 //处理虚拟结点vnode
 function patch(vnode, container) {
   //判断类型
-  if (typeof vnode.type === "string") {
+  if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
     processElement(vnode, container);
-  } else if (isObject(vnode.type)) {
+  } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, container);
   }
 }
@@ -26,12 +27,12 @@ function mountElement(vnode: any, container: any) {
   //将 DOM实例 绑定到vnode上，我们可以在后续的业务中直接访问DOM实例
   const el = (vnode.el = document.createElement(vnode.type));
 
-  const { props, children } = vnode;
+  const { props, children, shapeFlag } = vnode;
   //判断是否包含子结点，如果包含，也进行patch操作
   //此处其实可以发现是一个递归的过程
-  if (typeof vnode.children === "string") {
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     mountChildren(vnode, el);
   }
 

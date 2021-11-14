@@ -22,10 +22,7 @@ export function setupComponent(instance) {
 function setupStatefulComponent(instance: any) {
   const Component = instance.type;
 
-  instance.proxy = new Proxy(
-    {_:instance},
-    PublicInstanceProxyHandlers
-  );
+  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
 
   const { setup } = Component;
 

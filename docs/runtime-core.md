@@ -1,6 +1,24 @@
-# 一个Vue应用的构建过程
+# 【手写vue3系列】一个Vue应用的构建过程
 
 ## （一）阅读必看
+
+**技术栈：**Typescript + Jest
+
+文章中代码非完整代码，为方便理解作适当精简，详细代码可见仓库。
+
+github：https://github.com/Merlin218/my-mini-vue
+
+gitee：https://gitee.com/merlin218/my-mini-vue
+
+学习参考：崔大 mini-vue  https://github.com/cuixiaorui/mini-vue
+
+
+
+回顾上期，我们完成了vue响应式的相关实现，这一期我们来完成vue在运行时的核心部分，一步步构建一个vue应用。
+
+> 上期链接
+>
+> 【手写vue3系列】响应式实现：https://juejin.cn/post/7028613132339642382
 
 ## （二）原料/工具准备
 
@@ -105,6 +123,12 @@ export default {
 ```
 
 ## （三）原理剖析
+
+### （1）流程图
+
+![runtime-core](https://i.loli.net/2021/11/14/FopV9cedr6RzM7a.png)
+
+### （2）流程讲解
 
 首先，我们可以看到main.js中，导入了一个createApp的函数，我们可以从这里入手。
 
@@ -371,3 +395,6 @@ export { h } from "./h";
 将文件引入`main.js`和`App.js`，浏览器运行`index.html`文件。
 
 相信就可以看到我们的 `hi! mini-vue` 了！
+
+![image-20211114093653399](https://i.loli.net/2021/11/14/9Xa4YWRMJODKxt6.png)
+
