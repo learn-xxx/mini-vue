@@ -39,7 +39,13 @@ function mountElement(vnode: any, container: any) {
   //对该结点的属性进行设置
   for (const key in props) {
     const value = props[key];
-    el.setAttribute(key, value);
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    if (isOn(key)) {
+      const event = key.slice(2).toLowerCase();
+      el.addEventListener(event, value);
+    } else {
+      el.setAttribute(key, value);
+    }
   }
   //添加到容器中
   container.append(el);

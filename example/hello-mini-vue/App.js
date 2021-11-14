@@ -3,7 +3,15 @@ window.self = null;
 export const App = {
   render() {
     window.self = this;
-    return h("div", {}, "hi! " + this.msg);
+    return h(
+      "div",
+      {
+        onClick() {
+          console.log("click");
+        },
+      },
+      "hi! " + this.msg
+    );
   },
   setup() {
     return {
