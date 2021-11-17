@@ -1,3 +1,4 @@
+import { isObject } from "../shared/index";
 import {
   mutableHandlers,
   readonlyHandlers,
@@ -34,6 +35,10 @@ export function shallowReadonly(raw) {
 }
 
 function createActiveObject(raw: any, baseHandlers) {
+  if (!isObject(raw)) {
+    console.warn(`target:${raw}不是一个对象`);
+    return raw;
+  }
   //直接返回一个Proxy对象，实现响应式
   return new Proxy(raw, baseHandlers);
 }

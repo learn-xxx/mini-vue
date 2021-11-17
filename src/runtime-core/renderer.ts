@@ -1,4 +1,3 @@
-import { isObject } from "../shared/index";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 
@@ -58,6 +57,7 @@ function mountChildren(vnode: any, container: any) {
   });
 }
 
+//处理Component
 function processComponent(vnode: any, container: any) {
   //挂载组件
   mountComponent(vnode, container);
