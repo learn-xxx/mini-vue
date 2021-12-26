@@ -2,6 +2,7 @@ import { shallowReadonly } from "../reactivity/reactive";
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
+import { initSlots } from "./componentSlot";
 export function createComponentInstance(vnode) {
   const componentInstance = {
     vnode,
@@ -9,6 +10,8 @@ export function createComponentInstance(vnode) {
     render: Function,
     setupState: {},
     proxy: Proxy,
+    props: {},
+    slots:{},
     emit: () => {},
   };
   //bind() 方法创建一个新的函数，在 bind() 被调用时，这个新函数的 this 被指定为 bind() 的第一个参数，
@@ -20,10 +23,9 @@ export function createComponentInstance(vnode) {
 }
 
 export function setupComponent(instance) {
-  //TODO
   initProps(instance, instance.vnode.props);
-  //initSlots()
-
+  initSlots(instance, instance.vnode.children)
+  
   //处理setup返回值，初始化一个有状态的component
   setupStatefulComponent(instance);
 }
