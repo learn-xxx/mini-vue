@@ -1,4 +1,5 @@
 import { ShapeFlags } from '../shared/ShapeFlags';
+import {Text} from './renderer'
 
 export function createVNode(type, props?, children?) {
   const vnode = {
@@ -12,7 +13,6 @@ export function createVNode(type, props?, children?) {
   } else if (Array.isArray(children)) {
     vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN;
   }
-
   //组件 + children object
   if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     if (typeof children === 'object') {
@@ -21,6 +21,10 @@ export function createVNode(type, props?, children?) {
   }
 
   return vnode;
+}
+
+export function createTextNode(text:string){
+  return createVNode(Text,{},text);
 }
 
 function getShapeFlag(type) {

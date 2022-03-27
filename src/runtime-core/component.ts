@@ -35,7 +35,7 @@ function setupStatefulComponent(instance: any) {
 
   //创建代理
   instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
-
+ 
   const { setup } = Component;
 
   if (setup) {
@@ -48,7 +48,7 @@ function setupStatefulComponent(instance: any) {
 
     // 处理setup返回的结果
     handleSetupResult(instance, setupResult);
-  }
+  } 
 }
 function handleSetupResult(instance, setupResult: any) {
   //function
