@@ -3,7 +3,7 @@ import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlot";
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode,parent) {
   const componentInstance = {
     vnode,
     type: vnode.type,
@@ -11,7 +11,9 @@ export function createComponentInstance(vnode) {
     setupState: {},
     proxy: Proxy,
     props: {},
+    provides:parent ? parent.provides : {},
     slots:{},
+    parent,
     emit: () => {},
   };
   //bind() 方法创建一个新的函数，在 bind() 被调用时，这个新函数的 this 被指定为 bind() 的第一个参数，
@@ -39,12 +41,16 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
 
   if (setup) {
+    // 此处赋值全局变量，实现获取组件实例
+    setCurrentInstance(instance);
     //setup()返回可能是function或object
     //如果是function，我们认为是组件的render函数
     //如果是object，则将返回的内容注入到上下文中
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
+    setCurrentInstance(null);
+
 
     // 处理setup返回的结果
     handleSetupResult(instance, setupResult);
@@ -68,4 +74,14 @@ function finishComponentSetup(instance: any) {
   if (Component.render) {
     instance.render = Component.render;
   }
+}
+
+let currentInstance:any = null;
+
+export function getCurrentInstance(){
+  return currentInstance
+}
+
+export function setCurrentInstance(instance:any){
+  currentInstance = instance
 }

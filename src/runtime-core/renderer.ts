@@ -5,14 +5,14 @@ export const Fragment = Symbol('Fragment');
 export const Text = Symbol('Text');
 
 // 挂载孩子结点
-function mountChildren(vnode: any, container: any) {
+function mountChildren(vnode: any, container: any,parentComponent) {
   vnode.children.forEach((v) => {
     // eslint-disable-next-line no-use-before-define
-    patch(v, container);
+    patch(v, container,parentComponent);
   });
 }
 
-function mountElement(vnode: any, container: any) {
+function mountElement(vnode: any, container: any,parentComponent) {
   // 将 DOM实例 绑定到vnode上，我们可以在后续的业务中直接访问DOM实例
   const el = (vnode.el = document.createElement(vnode.type));
 
@@ -22,7 +22,7 @@ function mountElement(vnode: any, container: any) {
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    mountChildren(vnode, el);
+    mountChildren(vnode, el,parentComponent);
   }
 
   const isOn = (key: string) => /^on[A-Z]/.test(key);
@@ -42,9 +42,9 @@ function mountElement(vnode: any, container: any) {
 }
 
 // 处理element
-function processElement(vnode: any, container) {
+function processElement(vnode: any, container,parentComponent) {
   // 挂载element
-  mountElement(vnode, container);
+  mountElement(vnode, container,parentComponent);
 }
 
 function setupRenderEffect(instance: any, initialVNode, container) {
@@ -57,15 +57,15 @@ function setupRenderEffect(instance: any, initialVNode, container) {
 
   // 递归调用
   // eslint-disable-next-line no-use-before-define
-  patch(subTree, container);
+  patch(subTree, container,instance);
 
   // 在subTree渲染完成后，绑定$el根节点
   initialVNode.el = subTree.el;
 }
 
-function mountComponent(initialVNode: any, container) {
+function mountComponent(initialVNode: any, container,parentComponent) {
   // 创建一个组件实例
-  const instance = createComponentInstance(initialVNode);
+  const instance = createComponentInstance(initialVNode,parentComponent);
 
   // 初始化组件
   setupComponent(instance);
@@ -75,13 +75,13 @@ function mountComponent(initialVNode: any, container) {
 }
 
 // 处理Component
-function processComponent(vnode: any, container: any) {
+function processComponent(vnode: any, container: any,parentComponent) {
   // 挂载组件
-  mountComponent(vnode, container);
+  mountComponent(vnode, container,parentComponent);
 }
 
-function processFragment(vnode: any, container: any) {
-  mountChildren(vnode, container);
+function processFragment(vnode: any, container: any,parentComponent) {
+  mountChildren(vnode, container,parentComponent);
 }
 
 function processText(vnode: any, container: any) {
@@ -90,27 +90,27 @@ function processText(vnode: any, container: any) {
 }
 
 // 处理虚拟结点vnode
-function patch(vnode, container) {
+function patch(vnode, container,parentComponent) {
   // 判断类型
   // Fragment -> 只渲染子结点
   switch (vnode.type) {
     case Fragment:
-      processFragment(vnode, container);
+      processFragment(vnode, container,parentComponent);
       break;
     case Text:
       processText(vnode, container);
       break;
     default:
       if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
-        processElement(vnode, container);
+        processElement(vnode, container,parentComponent);
       } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-        processComponent(vnode, container);
+        processComponent(vnode, container,parentComponent);
       }
       break;
   }
 }
 
-export function render(vnode, container) {
+export function render(vnode, container,parentComponent) {
   // patch
-  patch(vnode, container);
+  patch(vnode, container,parentComponent);
 }
