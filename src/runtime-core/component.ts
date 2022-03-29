@@ -3,6 +3,7 @@ import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlot";
+import { proxyRefs } from "../reactivity/ref";
 export function createComponentInstance(vnode,parent) {
   const componentInstance = {
     vnode,
@@ -14,6 +15,8 @@ export function createComponentInstance(vnode,parent) {
     provides:parent ? parent.provides : {},
     slots:{},
     parent,
+    isMounted:false,
+    subTree:{},
     emit: () => {},
   };
   //bind() 方法创建一个新的函数，在 bind() 被调用时，这个新函数的 this 被指定为 bind() 的第一个参数，
@@ -61,7 +64,8 @@ function handleSetupResult(instance, setupResult: any) {
   //TODO function
 
   if (typeof setupResult === "object") {
-    instance.setupState = setupResult;
+    // 提前解构，后续可以直接获取值
+    instance.setupState = proxyRefs(setupResult);
   }
 
   //完成组件的初始化
