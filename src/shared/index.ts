@@ -4,6 +4,8 @@ export function isObject(target) {
 
 export const extend = Object.assign;
 
+export const EMPTY_OBJ = {};
+
 export const hasChanged = (val, newVal) => {
   return !Object.is(val, newVal);
 };
