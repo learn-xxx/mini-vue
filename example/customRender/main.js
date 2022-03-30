@@ -19,6 +19,7 @@ const renderer = createRenderer({
     }
   },
   patchProps(el,key,value){
+    debugger;
     el[key] = value;
   },
   insert(el,parent){
