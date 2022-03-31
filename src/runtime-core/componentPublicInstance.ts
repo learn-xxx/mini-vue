@@ -4,6 +4,7 @@ import { h } from './h';
 const PublicPropertiesMap = {
   $el: (i) => i.vnode.el,
   $slots: (i) => i.slots,
+  $props: (i) => i.props
 };
 
 export const PublicInstanceProxyHandlers = {

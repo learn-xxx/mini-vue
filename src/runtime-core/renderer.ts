@@ -4,6 +4,8 @@ import { EMPTY_OBJ } from '../shared';
 import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
+import { shouldUpdateComponent } from './componentUpdateUtils'
+import { queueJobs } from './scheduler';
 
 export const Fragment = Symbol('Fragment');
 export const Text = Symbol('Text');
@@ -264,7 +266,7 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance: any, initialVNode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         console.log('init');
 
@@ -282,17 +284,38 @@ export function createRenderer(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        console.log('update')
+        const { nextVNode, vnode } = instance; // vnode是旧虚拟结点，next是新虚拟结点
+        // 如果有nextVNode，说明组件需要更新
+        if (nextVNode) {
+          nextVNode.el = vnode.el;
+          updateComponentPreRender(instance, nextVNode);
+        }
+
         const subTree = instance.render.call(instance.proxy);
         const prevSubTree = instance.subTree;
         instance.subTree = subTree;
         patch(prevSubTree, subTree, container, instance, anchor);
       }
+    },{
+      scheduler(){
+        console.log('update -- scheduler');
+        queueJobs(instance.update);
+      }
     })
+  }
+
+  function updateComponentPreRender(instance, nextVNode) {
+    // 更新实例上的值
+    instance.vnode = nextVNode;
+    instance.nextVNode = null;
+    instance.props = nextVNode.props;
   }
 
   function mountComponent(initialVNode: any, container, parentComponent, anchor) {
     // 创建一个组件实例
-    const instance = createComponentInstance(initialVNode, parentComponent);
+    // 在vnode上保留实例，在更新的时候可以重新获取到render函数
+    const instance = (initialVNode.componentInstance = createComponentInstance(initialVNode, parentComponent));
 
     // 初始化组件
     setupComponent(instance);
@@ -303,8 +326,28 @@ export function createRenderer(options) {
 
   // 处理Component
   function processComponent(n1, n2: any, container: any, parentComponent, anchor) {
-    // 挂载组件
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      // 挂载组件
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      updateComponent(n1, n2);
+    }
+
+  }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.componentInstance = n1.componentInstance);
+    if (shouldUpdateComponent(n1, n2)) {
+      // 通过vnode拿到实例对象
+      // 把instance上的next标记为n2，方便在后续取到新的props等
+      instance.nextVNode = n2;
+      // 调用实例上的update方法（render方法）
+      instance.update();
+    } else {
+      n2.el = n1.el;
+      n2.vnode = n2;
+    }
+
   }
 
   function processFragment(n1, n2: any, container: any, parentComponent, anchor) {
