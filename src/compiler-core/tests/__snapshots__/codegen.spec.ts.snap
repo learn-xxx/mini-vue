@@ -1,5 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`codepen element 1`] = `
+"import { toDisplayString: _toDisplayString, createElementVNode: _createElementVNode } from Vue
+return function render(_ctx, _cache){return _createElementVNode('div', null, 'hi,' + _toDisplayString(_ctx.message))}"
+`;
+
 exports[`codepen interpolation 1`] = `
 "import { toDisplayString: _toDisplayString } from Vue
 return function render(_ctx, _cache){return _toDisplayString(_ctx.message)}"

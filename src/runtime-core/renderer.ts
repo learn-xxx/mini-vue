@@ -297,8 +297,8 @@ export function createRenderer(options) {
         instance.subTree = subTree;
         patch(prevSubTree, subTree, container, instance, anchor);
       }
-    },{
-      scheduler(){
+    }, {
+      scheduler() {
         console.log('update -- scheduler');
         queueJobs(instance.update);
       }
