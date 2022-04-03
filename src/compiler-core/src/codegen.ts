@@ -7,10 +7,10 @@ export function generate(ast) {
   const { push } = context
 
   genFunctionPreamble(ast, context);
-  push("return ")
 
   const functionName = "render"
   const args = ["_ctx", "_cache"]
+  push(`return `)
 
   const signature = args.join(', ');
 
@@ -26,16 +26,16 @@ export function generate(ast) {
 }
 function genFunctionPreamble(ast: any, context: any) {
   const { push } = context
-  const VueBinging = "Vue";
+  const VueBinging = 'Vue';
   const aliasHelpers = (i) => `${helperMapName[i]}: _${helperMapName[i]}`;
   if (ast.helpers.length > 0) {
-    push(`import { ${ast.helpers.map(aliasHelpers).join(", ")} } from ${VueBinging}`);
+    push(`const { ${ast.helpers.map(aliasHelpers).join(", ")} } = ${VueBinging}`);
     push('\n');
   }
 }
 
 function genNode(node: any, ctx: any) {
-  if(!node) return;
+  if (!node) return;
   switch (node.type) {
     case NodeTypes.TEXT:
       genText(node, ctx);

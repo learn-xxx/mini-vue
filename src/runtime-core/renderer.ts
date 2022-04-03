@@ -39,12 +39,13 @@ export function createRenderer(options) {
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       mountChildren(vnode.children, el, parentComponent, anchor);
     }
-    // 对该结点的属性进行设置
-    Object.keys(props).forEach((key) => {
-      const value = props[key];
-      hostPatchProps(el, key, null, value);
-    });
-
+    if (props) {
+      // 对该结点的属性进行设置
+      Object.keys(props).forEach((key) => {
+        const value = props[key];
+        hostPatchProps(el, key, null, value);
+      });
+    }
     // 添加到容器中
     hostInsert(el, container, anchor);
   }
@@ -275,7 +276,7 @@ export function createRenderer(options) {
         // 因为我们在初始化组件时，已经对proxy的getter进行了定义
         // 从而实现使用this.xxx来方便地获取我们需要的值
         const { proxy } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy));
+        const subTree = (instance.subTree = instance.render.call(proxy, proxy));
         // 递归调用
         // eslint-disable-next-line no-use-before-define
         patch(null, subTree, container, instance, anchor);
@@ -291,8 +292,8 @@ export function createRenderer(options) {
           nextVNode.el = vnode.el;
           updateComponentPreRender(instance, nextVNode);
         }
-
-        const subTree = instance.render.call(instance.proxy);
+        const { proxy } = instance
+        const subTree = instance.render.call(proxy, proxy);
         const prevSubTree = instance.subTree;
         instance.subTree = subTree;
         patch(prevSubTree, subTree, container, instance, anchor);

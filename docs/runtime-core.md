@@ -373,7 +373,7 @@ function setupRenderEffect(instance: any, initialVNode, container) {
   //因为我们在初始化组件时，已经对proxy的getter进行了定义
   //从而实现使用this.xxx来方便地获取我们需要的值
   const { proxy } = instance;
-  const subTree = instance.render.call(proxy);
+  const subTree = instance.render.call(proxy,proxy);
 
   //递归调用
   patch(subTree, container);

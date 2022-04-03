@@ -11,7 +11,7 @@ export function baseParse(context: string) {
 }
 
 function parseChildren(context, ancestors) {
-  const nodes = [];
+  const nodes:any = [];
   let node: any;
   while (true) {
     if (isEnd(context, ancestors)) break;
