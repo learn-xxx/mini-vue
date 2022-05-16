@@ -97,10 +97,10 @@ export function createRenderer(options) {
   }
 
   function patchKeyChildren(c1, c2, container, parentComponent, anchor) {
-    let i = 0;
-    const l2 = c2.length;
-    let e1 = c1.length - 1;
-    let e2 = l2 - 1;
+    let i = 0; // 当前对比的结点
+    const l2 = c2.length; // 新结点的长度
+    let e1 = c1.length - 1; // 旧结点的最后索引
+    let e2 = l2 - 1; // 新节点的最后索引
 
     function isSameVNodeType(n1, n2) {
       return n1.type === n2.type && n1.key === n2.key;
@@ -204,9 +204,10 @@ export function createRenderer(options) {
             moved = true;
           }
           // 在这里我们可以认为新结点就是存在的
-          // newIndex表示新节点的索引，s2表示中间部门的开头，数组长度为应该更新的结点数量
-          // 所以需要相减，获得在数组中的真实位置
-          // i代表旧结点的索引
+          // newIndex表示节点的新索引，s2表示中间部分的开头，数组长度为应该更新的结点数量
+          // 所以需要相减，获得 在新旧位置对应的数组 中的相对位置
+          // i代表旧结点的索引，记录下来
+          // 后续可能会基于这个去计算 最长递增子序列的索引数组，来判断后续哪一些结点不需要移动
           newIndexToOldIndexMap[newIndex - s2] = i;
           patch(prevChild, c2[newIndex], container, parentComponent, null);
           // 更新结点数+1
@@ -301,6 +302,7 @@ export function createRenderer(options) {
     }, {
       scheduler() {
         console.log('update -- scheduler');
+        debugger
         queueJobs(instance.update);
       }
     })
@@ -393,21 +395,30 @@ export function createRenderer(options) {
 }
 
 function getSequence(arr) {
+  // 备份
   const p = arr.slice();
   const result = [0];
   let i, j, u, v, c;
   const len = arr.length;
   for (i = 0; i < len; i++) {
+    // 当前索引的值
     const arrI = arr[i];
+    // 排除了等于0的情况
+    // 原因是0成为了diff算法中的占位符，不影响对算法的了解
     if (arrI !== 0) {
+      // 用当前num与result中的最后一项对比
       j = result[result.length - 1];
       if (arr[j] < arrI) {
+        // 当前数值大于result子序列最后一项时，直接往后新增，并将当前数值的前一位result保存
         p[i] = j;
+        // 加到结果中
         result.push(i);
         continue;
       }
+      // 最大值大于当前值（数组不包含重复值）
       u = 0;
       v = result.length - 1;
+      // 二分查找，找到第一个大于当前值的数的在result数组中的索引
       while (u < v) {
         c = (u + v) >> 1;
         if (arr[result[c]] < arrI) {
@@ -417,18 +428,25 @@ function getSequence(arr) {
           v = c;
         }
       }
+      // arr[result[u]] 表示
       if (arrI < arr[result[u]]) {
+        // 找到下标，将当前下标对应的前一位result保存
+        // (如果找到的是第一位，不需要操作，第一位前面没有了)
         if (u > 0) {
           p[i] = result[u - 1];
         }
+        // 找到下标，直接替换result中的数值
         result[u] = i;
       }
     }
   }
   u = result.length;
   v = result[u - 1];
+  // 回溯，直接从最后一位开始，将前面的result全部覆盖，
+  // 如果不需要修正，则p中记录的每一项都是对应的前一位，不会有任何影响
   while (u-- > 0) {
     result[u] = v;
+    // p[v]记录了该位的前一个result的最后一项
     v = p[v];
   }
   return result;

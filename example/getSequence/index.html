@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    function getSequence(arr) {
+      const p = arr.slice();
+      const result = [0]; // 存储索引
+      // let 
+      for (let i = 0; i < arr.length; i++) {
+        const arrI = arr[i]; // 当前值
+        if (arrI != 0) {
+          let j = result[result.length - 1]; // 取当前result最大值
+          // 是递增的，就把当前值加到result中
+          if (arr[i] > arr[j]) {
+            p[i] = j; // 备份前一个result的最大值
+            result.push(i);
+            continue
+          }
+          // 不是递增的，找到比他大的那个值 在 result 中的索引
+          let l = 0;
+          let r = result.length - 1;
+          while (l < r) {
+            let mid = (l + r) >> 1;
+            if (arr[result[mid]] < arr[i]) {
+              l = mid + 1;
+            } else { 而且其实那段话我可以安排
+              r = mid;
+            }
+          }
+          // 如果能找到
+          if (arr[result[l]] > arr[i]) {
+            if (l > 0) { // l = 0时，不需要备份
+              p[i] = result[l - 1]; // 备份前一个result的最大值
+            }
+            // 更新结果
+            result[l] = i;
+          }
+        }
+      }
+      // 回溯，得到正确答案
+      // 因为有可能存在说，遍历到后面的值，比前面的值小，会覆盖之前的值,可能导致不正确
+      let i = result.length;
+      let j = result[i - 1];
+      while (i-- > 0) {
+        result[i] = j; // 
+        j = p[j]; // 找到当前的前一个result最大值
+      }
+      return result;
+    }
+    let arr = [10, 9, 2, 5, 3, 7, 101, 18,1]
+    let res = getSequence(arr)
+    console.log(res)
+  </script>
+</body>
+
+</html>
