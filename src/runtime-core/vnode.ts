@@ -1,19 +1,23 @@
+import { once, printTable } from '../shared/TestUtil';
 import { ShapeFlags } from '../shared/ShapeFlags';
-import {Text} from './renderer'
+import { Text } from './renderer'
 
 export {
   createVNode as createElementVNode
 }
 
+const printVNodeStructure = once(printTable)
+
 export function createVNode(type, props?, children?) {
+  const shapeFlag = getShapeFlag(type)
   const vnode = {
     type, // component或element
     props,
-    shapeFlag: getShapeFlag(type), 
+    shapeFlag,
     children,
-    componentInstance:null,
-    el:null,
-    key:props && props.key
+    componentInstance: null,
+    el: null,
+    key: props && props.key
   };
   if (typeof children === 'string') {
     vnode.shapeFlag |= ShapeFlags.TEXT_CHILDREN;
@@ -26,12 +30,11 @@ export function createVNode(type, props?, children?) {
       vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN;
     }
   }
-
   return vnode;
 }
 
-export function createTextNode(text:string){
-  return createVNode(Text,{},text);
+export function createTextNode(text: string) {
+  return createVNode(Text, {}, text);
 }
 
 function getShapeFlag(type) {

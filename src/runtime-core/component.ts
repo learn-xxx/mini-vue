@@ -4,10 +4,11 @@ import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlot";
 import { proxyRefs } from "../reactivity/ref";
+import { once, printTip } from "../shared/TestUtil";
 
 let compiler;
 
-export function createComponentInstance(vnode,parent) {
+export function createComponentInstance(vnode, parent) {
   const componentInstance = {
     vnode,
     type: vnode.type,
@@ -15,13 +16,13 @@ export function createComponentInstance(vnode,parent) {
     setupState: {},
     proxy: Proxy,
     props: {},
-    nextVNode:null,
-    provides:parent ? parent.provides : {},
-    slots:{},
+    nextVNode: null,
+    provides: parent ? parent.provides : {},
+    slots: {},
     parent,
-    isMounted:false,
-    subTree:{},
-    emit: () => {},
+    isMounted: false,
+    subTree: {},
+    emit: () => { },
   };
   //bind() 方法创建一个新的函数，在 bind() 被调用时，这个新函数的 this 被指定为 bind() 的第一个参数，
   //而其余参数将作为新函数的参数，供调用时使用。
@@ -34,17 +35,20 @@ export function createComponentInstance(vnode,parent) {
 export function setupComponent(instance) {
   initProps(instance, instance.vnode.props);
   initSlots(instance, instance.vnode.children)
-  
+
   //处理setup返回值，初始化一个有状态的component
   setupStatefulComponent(instance);
 }
+
+const printTip1 = once(printTip)
 
 function setupStatefulComponent(instance: any) {
   const Component = instance.type;
 
   //创建代理
+  printTip1('代理对象proxy是属于组件实例的，通过劫持get操作，判断数据是来自props、setupState等，返回数据的结果')
   instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
- 
+
   const { setup } = Component;
 
   if (setup) {
@@ -61,7 +65,7 @@ function setupStatefulComponent(instance: any) {
 
     // 处理setup返回的结果
     handleSetupResult(instance, setupResult);
-  } 
+  }
 }
 function handleSetupResult(instance, setupResult: any) {
   //function
@@ -79,8 +83,8 @@ function handleSetupResult(instance, setupResult: any) {
 function finishComponentSetup(instance: any) {
   const Component = instance.type;
 
-  if(compiler && !Component.render){
-    if(Component.template){
+  if (compiler && !Component.render) {
+    if (Component.template) {
       Component.render = compiler(Component.template)
     }
   }
@@ -90,17 +94,17 @@ function finishComponentSetup(instance: any) {
   }
 }
 
-let currentInstance:any = null;
+let currentInstance: any = null;
 
-export function getCurrentInstance(){
+export function getCurrentInstance() {
   return currentInstance
 }
 
-export function setCurrentInstance(instance:any){
+export function setCurrentInstance(instance: any) {
   currentInstance = instance
 }
 
 
-export function registerRuntimeCompiler(_compiler){
+export function registerRuntimeCompiler(_compiler) {
   compiler = _compiler
 }

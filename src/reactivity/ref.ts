@@ -42,7 +42,7 @@ export function trackRefValue(ref: RefImpl) {
 }
 
 export function isRef(ref: any) {
-  return !!ref._v_isRef;
+  return ref && !!ref._v_isRef;
 }
 
 export function unRef(ref: any) {

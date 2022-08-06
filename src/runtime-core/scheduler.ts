@@ -5,7 +5,7 @@ let isFlushPending = false;
 // nextTick是在更改响应式数据之后才调用的
 // 而响应式数据改变会更新结点，需要操作dom，也会生成微任务，
 // 因为调用的时机所以nextTick肯定是排在其之后
-export function nextTick(fn){
+export function nextTick(fn) {
   return fn ? p.then(fn) : p;
 }
 
@@ -19,7 +19,6 @@ export function queueJobs(job) {
 }
 
 function queueFlush() {
-  debugger
   // 没有处于等待状态，处在第一个任务进queue的情况。
   if (isFlushPending) return;
   // 表示已经把queue的执行的微任务加到事件队列中了。
@@ -27,7 +26,7 @@ function queueFlush() {
   nextTick(flushJobs);
 }
 
-function flushJobs(){
+function flushJobs() {
   // 执行完之后恢复原状
   isFlushPending = false
   let job;

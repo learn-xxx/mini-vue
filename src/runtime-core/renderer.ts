@@ -1,14 +1,25 @@
 
 import { effect } from '../reactivity/effect';
-import { EMPTY_OBJ } from '../shared';
+import { genSpace, genVNodeFeature, getUpNum, once, printSentence, printStage, printTip } from '../shared/TestUtil';
 import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
 import { shouldUpdateComponent } from './componentUpdateUtils'
 import { queueJobs } from './scheduler';
+import { EMPTY_OBJ } from '../shared';
+import { cloneDeep } from 'lodash-es'
 
 export const Fragment = Symbol('Fragment');
 export const Text = Symbol('Text');
+
+
+const printTip1 = once(printTip)
+const printTip2 = once(printTip)
+const printStage1 = once(printStage);
+const printSentence2 = once(printSentence);
+const printSentence3 = once(printSentence);
+const printSentence4 = once(printSentence);
+const printSentence5 = once(printSentence);
 
 export function createRenderer(options) {
 
@@ -52,11 +63,19 @@ export function createRenderer(options) {
 
   // 处理element
   function processElement(n1, n2: any, container, parentComponent, anchor) {
+    const num = getUpNum()
     if (!n1) {
+      printStage(genSpace(num) + '【元素' + num + '】:第一次挂载', n2.type, '元素开始');
       // 挂载element
       mountElement(n2, container, parentComponent, anchor);
+      printStage(genSpace(num) + '【元素' + num + '】:第一次挂载', n2.type, '元素开始');
+
     } else {
+      printStage(genSpace(num) + '【元素' + num + '】:更新', n2.type, '元素开始');
+
       patchElement(n1, n2, container, parentComponent, anchor);
+      printStage(genSpace(num) + '【元素' + num + '】:更新', n2.type, '元素开始');
+
     }
   }
 
@@ -270,15 +289,16 @@ export function createRenderer(options) {
   function setupRenderEffect(instance: any, initialVNode, container, anchor) {
     instance.update = effect(() => {
       if (!instance.isMounted) {
-        console.log('init');
-
         // 我们取出实例中的proxy，将render函数中的this指向proxy
         // 那么在后续使用this.xxx获取值中，会调用proxy的getter方法
         // 因为我们在初始化组件时，已经对proxy的getter进行了定义
         // 从而实现使用this.xxx来方便地获取我们需要的值
         const { proxy } = instance;
         const subTree = (instance.subTree = instance.render.call(proxy, proxy));
+        printSentence4('3.执行实例的render函数，渲染子节点', cloneDeep(subTree));
+        printTip2('执行render函数时，我们使用bind方法，把我们之前创建的数据代理对象proxy作为函数的this，实现在子组件中通过this.xxx来方便地获取我们需要的值。');
         // 递归调用
+        printStage('开始递归渲染子组件...')
         // eslint-disable-next-line no-use-before-define
         patch(null, subTree, container, instance, anchor);
 
@@ -286,7 +306,7 @@ export function createRenderer(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
-        console.log('update')
+        printTip1('初始化实例状态时，其实被effect包裹着，当我们创建响应式数据时，会进行依赖（也就是说渲染过程本身就是一个依赖）收集，当我们响应式数据发生改变时，就会触发渲染逻辑重新运行。')
         const { nextVNode, vnode } = instance; // vnode是旧虚拟结点，next是新虚拟结点
         // 如果有nextVNode，说明组件需要更新
         if (nextVNode) {
@@ -302,7 +322,6 @@ export function createRenderer(options) {
     }, {
       scheduler() {
         console.log('update -- scheduler');
-        debugger
         queueJobs(instance.update);
       }
     })
@@ -319,23 +338,27 @@ export function createRenderer(options) {
     // 创建一个组件实例
     // 在vnode上保留实例，在更新的时候可以重新获取到render函数
     const instance = (initialVNode.componentInstance = createComponentInstance(initialVNode, parentComponent));
-
+    printSentence2('1.先创建组件 ' + initialVNode.type.name + ' 的实例:', cloneDeep(instance));
     // 初始化组件
     setupComponent(instance);
-
+    printSentence3('2.对组件进行初始化，例如props、slots、创建代理对象proxy等，当前实例:', cloneDeep(instance));
     // 对组件进行初次渲染
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
 
   // 处理Component
   function processComponent(n1, n2: any, container: any, parentComponent, anchor) {
+    const num = getUpNum();
     if (!n1) {
+      printStage(genSpace(num) + '【组件' + num + '】第一次挂载:' + n2.type.name + '开始')
       // 挂载组件
       mountComponent(n2, container, parentComponent, anchor);
+      printStage(genSpace(num) + '【组件' + num + '】第一次挂载:' + n2.type.name + '结束')
     } else {
+      printStage(genSpace(num) + '【组件' + num + '】更新:' + n2.type.name + '开始')
       updateComponent(n1, n2);
+      printStage(genSpace(num) + '【组件' + num + '】更新:' + n2.type.name + '结束')
     }
-
   }
 
   function updateComponent(n1, n2) {
@@ -354,16 +377,25 @@ export function createRenderer(options) {
   }
 
   function processFragment(n1, n2: any, container: any, parentComponent, anchor) {
+    const num = getUpNum()
+    printStage(genSpace(num) + 'Fragment' + num + '】渲染:' + n2.type.name + '开始')
     mountChildren(n2.children, container, parentComponent, anchor);
+    printStage(genSpace(num) + 'Fragment' + num + '】渲染:' + n2.type.name + '结束')
   }
 
   function processText(n1, n2: any, container: any) {
+    const num = getUpNum()
+    printStage(genSpace(num) + '文本' + num + '】渲染:' + n2.type.name + '开始')
     const el = (n2.el = document.createTextNode(n2.children));
     container.append(el);
+    printStage(genSpace(num) + '文本' + num + '】渲染:' + n2.type.name + '结束')
   }
+
+  const printVNodeFeature = once(printSentence);
 
   // 处理虚拟结点vnode，n1代表旧的结点，n2代表新的结点
   function patch(n1, n2, container, parentComponent, anchor) {
+    printVNodeFeature(...genVNodeFeature(n2));
     // 判断类型
     // Fragment -> 只渲染子结点
     switch (n2.type) {
@@ -377,6 +409,7 @@ export function createRenderer(options) {
         if (n2.shapeFlag & ShapeFlags.ELEMENT) {
           processElement(n1, n2, container, parentComponent, anchor);
         } else if (n2.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+
           processComponent(n1, n2, container, parentComponent, anchor);
         }
         break;
@@ -384,6 +417,7 @@ export function createRenderer(options) {
   }
 
   function render(vnode, container, parentComponent) {
+    printStage('开始根据vnode渲染成HTML元素')
     // patch
     patch(null, vnode, container, parentComponent, null);
   }
