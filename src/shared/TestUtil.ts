@@ -76,7 +76,9 @@ export const vnodeToTable = (vnode: { type: any; props: any; shapeFlag: number; 
   }
 })
 
-export const instanceToTable = (instance: { vnode: any; type: any; render: any; setupState: any; props: any; nextVNode: any; provides: any; slots: any; parent: any; isMounted: any; subTree: any; }) => ({
+export const instanceToTable = (instance: {
+  proxy: any; vnode: any; type: any; render: any; setupState: any; props: any; nextVNode: any; provides: any; slots: any; parent: any; isMounted: any; subTree: any;
+}) => ({
   vnode: {
     value: instance.vnode,
     describe: '实例对应的组件',
@@ -93,7 +95,10 @@ export const instanceToTable = (instance: { vnode: any; type: any; render: any; 
     value: instance.setupState,
     describe: 'setup后生成的实例状态',
   },
-  proxy: {},
+  proxy: {
+    describe: '数据代理对象',
+    value: instance.proxy
+  },
   props: {
     describe: '实例传入的值',
     value: instance.props
@@ -176,6 +181,14 @@ export const defineUpNum = () => {
   Object.defineProperty(window, 'up', {
     get() {
       return ++i;
+    },
+    set(v) {
+      i = 0;
     }
   })
+}
+
+export const resetUpNum = () => {
+  // @ts-ignore
+  window.up = 0;
 }

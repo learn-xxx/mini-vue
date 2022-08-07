@@ -53,7 +53,7 @@ export const mutableHandlers = {
 export const readonlyHandlers = {
   get: readonlyGet,
   set: (key, target) => {
-    console.warn(`key:${key} set 失败，因为target是一个readonly对象`, target);
+    // console.warn(`key:${key} set 失败，因为target是一个readonly对象`, target);
     return true;
   },
 };

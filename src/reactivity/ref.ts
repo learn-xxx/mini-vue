@@ -1,6 +1,10 @@
 import { hasChanged, isObject } from "../shared";
+import { once, printSentence } from "../shared/TestUtil";
 import { isTracking, trackEffects, triggerEffects } from "./effect";
 import { reactive } from "./reactive";
+
+const printSentence4 = once(printSentence);
+
 
 class RefImpl {
   private _value: any;
@@ -19,6 +23,7 @@ class RefImpl {
   }
   set value(newValue) {
     if (hasChanged(newValue, this._rawValue)) {
+      printSentence4('【响应式数据发生了改变', '新值为', newValue, '旧值为', this._rawValue, '】')
       // 一定先修改value
       this._rawValue = newValue;
       this._value = convert(newValue);
@@ -27,8 +32,12 @@ class RefImpl {
   }
 }
 
+const printSentence1 = once(printSentence);
+
 export function ref(value: any) {
-  return new RefImpl(value);
+  const ref = new RefImpl(value)
+  printSentence1('创建一个ref响应式对象：', ref)
+  return ref
 }
 
 export function convert(value: any) {

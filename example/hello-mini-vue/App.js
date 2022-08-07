@@ -1,4 +1,4 @@
-import { h, ref, onLearn } from "../../lib/mini-vue.esm.js";
+import { h, reactive, onLearn } from "../../lib/mini-vue.esm.js";
 import { Foo } from "./Foo.js";
 window.self = null;
 
@@ -17,20 +17,22 @@ export const App = {
       [
         h("div", {}, "hi," + this.msg),
         h(Foo, {
-          count: this.count,
+          count: this.state.count,
         }),
       ]
       // "hi! " + this.msg
     );
   },
   setup() {
-    const count = ref(1);
+    const state = reactive({
+      count: 1
+    });
     const handleClick = () => {
-      count.value++;
+      state.count++;
     }
     return {
       msg: "mini-vue",
-      count,
+      state,
       handleClick
     };
   },

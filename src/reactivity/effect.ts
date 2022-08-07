@@ -1,5 +1,7 @@
 import { extend } from "../shared";
+import { once, printSentence, printStage } from "../shared/TestUtil";
 
+import { cloneDeep } from 'lodash-es'
 let activeEffect: ReactiveEffect; //当前的依赖
 let shouldTrack: Boolean; //是否收集依赖
 
@@ -54,7 +56,7 @@ function cleanupEffect(effect) {
   effect.deps.length = 0;
 }
 
-const targetMap = new Map();
+const targetMap = new WeakMap();
 // targetMap:{
 //   [target:Map]:{
 //     [key: Set]:[]
@@ -82,9 +84,18 @@ export function track(target: Object, key) {
   trackEffects(depSet);
 }
 
+const printStage2 = once(printStage);
+const printStage3 = once(printStage);
+const printSentence1 = once(printSentence);
+const printSentence2 = once(printSentence);
+
 export function trackEffects(dep) {
+  printStage2('收集依赖开始：')
+  printSentence1('当前依赖：', cloneDeep(activeEffect))
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
+  printSentence2('依赖树(target -> key -> dep):', targetMap)
+  printStage3('收集依赖结束')
 }
 
 export function isTracking(): Boolean {
@@ -96,17 +107,20 @@ export function isTracking(): Boolean {
 export function trigger(target, key) {
   let depMap = targetMap.get(target);
   let dep = depMap.get(key);
-
   triggerEffects(dep);
 }
+const printStage5 = once(printStage);
+const printStage6 = once(printStage);
 
 export function triggerEffects(dep) {
   for (const effect of dep) {
+    printStage5('触发依赖开始，开始更新数据')
     if (effect.scheduler) {
       effect.scheduler();
     } else {
       effect.run();
     }
+    printStage6('触发依赖完成，数据已更新')
   }
 }
 

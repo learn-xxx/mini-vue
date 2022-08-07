@@ -1,6 +1,5 @@
-
 import { effect } from '../reactivity/effect';
-import { genSpace, genVNodeFeature, getUpNum, once, printSentence, printStage, printTip } from '../shared/TestUtil';
+import { genSpace, genVNodeFeature, getUpNum, once, printSentence, printStage, printTip, resetUpNum } from '../shared/TestUtil';
 import { ShapeFlags } from '../shared/ShapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
@@ -15,13 +14,16 @@ export const Text = Symbol('Text');
 
 const printTip1 = once(printTip)
 const printTip2 = once(printTip)
+const printTip3 = once(printTip)
 const printStage1 = once(printStage);
+const printStage2 = once(printStage);
 const printSentence2 = once(printSentence);
 const printSentence3 = once(printSentence);
 const printSentence4 = once(printSentence);
 const printSentence5 = once(printSentence);
+const printSentence6 = once(printSentence);
 
-export function createRenderer(options) {
+export function createRenderer(options: { createElement: any; patchProps: any; insert: any; remove: any; setElementText: any; }) {
 
   const {
     createElement: hostCreateElement,
@@ -32,13 +34,13 @@ export function createRenderer(options) {
   } = options;
 
   // 挂载孩子结点
-  function mountChildren(children: any, container: any, parentComponent, anchor) {
-    children.forEach((v) => {
+  function mountChildren(children: any, container: any, parentComponent: any, anchor: any) {
+    children.forEach((v: any) => {
       patch(null, v, container, parentComponent, anchor);
     });
   }
 
-  function mountElement(vnode: any, container: any, parentComponent, anchor) {
+  function mountElement(vnode: any, container: any, parentComponent: any, anchor: any) {
     // 将 DOM实例 绑定到vnode上，我们可以在后续的业务中直接访问DOM实例
     const el = (vnode.el = hostCreateElement(vnode.type));
 
@@ -62,26 +64,26 @@ export function createRenderer(options) {
   }
 
   // 处理element
-  function processElement(n1, n2: any, container, parentComponent, anchor) {
+  function processElement(n1: any, n2: any, container: any, parentComponent: any, anchor: any) {
     const num = getUpNum()
     if (!n1) {
       printStage(genSpace(num) + '【元素' + num + '】:第一次挂载', n2.type, '元素开始');
       // 挂载element
       mountElement(n2, container, parentComponent, anchor);
-      printStage(genSpace(num) + '【元素' + num + '】:第一次挂载', n2.type, '元素开始');
+      printStage(genSpace(num) + '【元素' + num + '】:第一次挂载', n2.type, '元素结束');
 
     } else {
       printStage(genSpace(num) + '【元素' + num + '】:更新', n2.type, '元素开始');
 
       patchElement(n1, n2, container, parentComponent, anchor);
-      printStage(genSpace(num) + '【元素' + num + '】:更新', n2.type, '元素开始');
+      printStage(genSpace(num) + '【元素' + num + '】:更新', n2.type, '元素结束');
 
     }
   }
 
-  function patchElement(n1, n2, container, parentComponent, anchor) {
-    console.log('n1:', n1)
-    console.log('n2:', n2)
+  function patchElement(n1, n2, container: any, parentComponent: any, anchor: any) {
+    printSentence5('旧结点n1:', n1)
+    printSentence6('新结点n2:', n2)
 
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
@@ -92,7 +94,7 @@ export function createRenderer(options) {
     patchProps(el, oldProps, newProps);
   }
 
-  function patchChildren(n1, n2, container, parentComponent, anchor) {
+  function patchChildren(n1: { shapeFlag: any; children: any; }, n2: { shapeFlag: any; children: any; }, container: any, parentComponent: any, anchor: any) {
     const prevShapeFlag = n1.shapeFlag;
     const c1 = n1.children
     const { shapeFlag, children: c2 } = n2;
@@ -115,13 +117,13 @@ export function createRenderer(options) {
     }
   }
 
-  function patchKeyChildren(c1, c2, container, parentComponent, anchor) {
+  function patchKeyChildren(c1: string | any[], c2: string | any[], container: any, parentComponent: any, anchor: any) {
     let i = 0; // 当前对比的结点
     const l2 = c2.length; // 新结点的长度
     let e1 = c1.length - 1; // 旧结点的最后索引
     let e2 = l2 - 1; // 新节点的最后索引
 
-    function isSameVNodeType(n1, n2) {
+    function isSameVNodeType(n1: { type: any; key: any; }, n2: { type: any; key: any; }) {
       return n1.type === n2.type && n1.key === n2.key;
     }
 
@@ -199,7 +201,7 @@ export function createRenderer(options) {
           continue;
         }
 
-        let newIndex;
+        let newIndex: number | undefined;
         // 寻找新结点中是否存在该节点
         if (prevChild.key !== null) {
           newIndex = keyToNewIndexMap.get(prevChild.key);
@@ -257,14 +259,14 @@ export function createRenderer(options) {
 
   }
 
-  function unmountedChildren(children) {
+  function unmountedChildren(children: string | any[]) {
     for (let i = 0; i < children.length; i++) {
       const el = children[i].el;
       hostRemove(el);
     }
   }
 
-  function patchProps(el, oldProps, newProps) {
+  function patchProps(el: any, oldProps: { [x: string]: any; }, newProps: { [x: string]: any; }) {
     if (oldProps !== newProps) {
       // 遍历新值，对比旧值
       for (const key in newProps) {
@@ -286,7 +288,7 @@ export function createRenderer(options) {
     }
   }
 
-  function setupRenderEffect(instance: any, initialVNode, container, anchor) {
+  function setupRenderEffect(instance: any, initialVNode: { el: any; }, container: any, anchor: any) {
     instance.update = effect(() => {
       if (!instance.isMounted) {
         // 我们取出实例中的proxy，将render函数中的this指向proxy
@@ -298,7 +300,6 @@ export function createRenderer(options) {
         printSentence4('3.执行实例的render函数，渲染子节点', cloneDeep(subTree));
         printTip2('执行render函数时，我们使用bind方法，把我们之前创建的数据代理对象proxy作为函数的this，实现在子组件中通过this.xxx来方便地获取我们需要的值。');
         // 递归调用
-        printStage('开始递归渲染子组件...')
         // eslint-disable-next-line no-use-before-define
         patch(null, subTree, container, instance, anchor);
 
@@ -306,6 +307,7 @@ export function createRenderer(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        printStage1('以下为组件更新逻辑：')
         printTip1('初始化实例状态时，其实被effect包裹着，当我们创建响应式数据时，会进行依赖（也就是说渲染过程本身就是一个依赖）收集，当我们响应式数据发生改变时，就会触发渲染逻辑重新运行。')
         const { nextVNode, vnode } = instance; // vnode是旧虚拟结点，next是新虚拟结点
         // 如果有nextVNode，说明组件需要更新
@@ -321,20 +323,21 @@ export function createRenderer(options) {
       }
     }, {
       scheduler() {
-        console.log('update -- scheduler');
+        resetUpNum();
         queueJobs(instance.update);
+        printTip3('此时组件并没有立即重新渲染，而是被加入任务队列中，等待执行，所以组件更新是一个异步的过程，在任务执行之前，我们无法通过DOM结点获取到最新的值。')
       }
     })
   }
 
-  function updateComponentPreRender(instance, nextVNode) {
+  function updateComponentPreRender(instance: { vnode: any; nextVNode: null; props: any; }, nextVNode: { props: any; }) {
     // 更新实例上的值
     instance.vnode = nextVNode;
     instance.nextVNode = null;
     instance.props = nextVNode.props;
   }
 
-  function mountComponent(initialVNode: any, container, parentComponent, anchor) {
+  function mountComponent(initialVNode: any, container: any, parentComponent: any, anchor: any) {
     // 创建一个组件实例
     // 在vnode上保留实例，在更新的时候可以重新获取到render函数
     const instance = (initialVNode.componentInstance = createComponentInstance(initialVNode, parentComponent));
@@ -347,7 +350,7 @@ export function createRenderer(options) {
   }
 
   // 处理Component
-  function processComponent(n1, n2: any, container: any, parentComponent, anchor) {
+  function processComponent(n1: any, n2: any, container: any, parentComponent: any, anchor: any) {
     const num = getUpNum();
     if (!n1) {
       printStage(genSpace(num) + '【组件' + num + '】第一次挂载:' + n2.type.name + '开始')
@@ -361,7 +364,7 @@ export function createRenderer(options) {
     }
   }
 
-  function updateComponent(n1, n2) {
+  function updateComponent(n1: { componentInstance: any; el: any; }, n2: { componentInstance: any; el: any; vnode: any; }) {
     const instance = (n2.componentInstance = n1.componentInstance);
     if (shouldUpdateComponent(n1, n2)) {
       // 通过vnode拿到实例对象
@@ -376,14 +379,14 @@ export function createRenderer(options) {
 
   }
 
-  function processFragment(n1, n2: any, container: any, parentComponent, anchor) {
+  function processFragment(n1: any, n2: any, container: any, parentComponent: any, anchor: any) {
     const num = getUpNum()
     printStage(genSpace(num) + 'Fragment' + num + '】渲染:' + n2.type.name + '开始')
     mountChildren(n2.children, container, parentComponent, anchor);
     printStage(genSpace(num) + 'Fragment' + num + '】渲染:' + n2.type.name + '结束')
   }
 
-  function processText(n1, n2: any, container: any) {
+  function processText(n1: any, n2: any, container: any) {
     const num = getUpNum()
     printStage(genSpace(num) + '文本' + num + '】渲染:' + n2.type.name + '开始')
     const el = (n2.el = document.createTextNode(n2.children));
@@ -394,7 +397,7 @@ export function createRenderer(options) {
   const printVNodeFeature = once(printSentence);
 
   // 处理虚拟结点vnode，n1代表旧的结点，n2代表新的结点
-  function patch(n1, n2, container, parentComponent, anchor) {
+  function patch(n1: null, n2: { type: any; shapeFlag: any; }, container: any, parentComponent: any, anchor: null) {
     printVNodeFeature(...genVNodeFeature(n2));
     // 判断类型
     // Fragment -> 只渲染子结点
@@ -409,15 +412,14 @@ export function createRenderer(options) {
         if (n2.shapeFlag & ShapeFlags.ELEMENT) {
           processElement(n1, n2, container, parentComponent, anchor);
         } else if (n2.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-
           processComponent(n1, n2, container, parentComponent, anchor);
         }
         break;
     }
   }
 
-  function render(vnode, container, parentComponent) {
-    printStage('开始根据vnode渲染成HTML元素')
+  function render(vnode: any, container: any, parentComponent: any) {
+    printStage('根据vnode渲染成HTML元素')
     // patch
     patch(null, vnode, container, parentComponent, null);
   }
@@ -428,11 +430,11 @@ export function createRenderer(options) {
   }
 }
 
-function getSequence(arr) {
+function getSequence(arr: any[]) {
   // 备份
   const p = arr.slice();
   const result = [0];
-  let i, j, u, v, c;
+  let i: number, j: number, u: number, v: number, c: number;
   const len = arr.length;
   for (i = 0; i < len; i++) {
     // 当前索引的值
