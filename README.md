@@ -6,6 +6,8 @@
 
 在commit列表中可以清晰的看到已经实现的功能点。
 
+> example中`hello-mini-vue`demo项目的控制台截图
+
 ![image-20220807171040859](https://cdn.jsdelivr.net/gh/Merlin218/image-storage/picGo/202208071710912.png)
 
 ### 文章列表
