@@ -63,12 +63,12 @@ function setupStatefulComponent(instance: any) {
     //setup()返回可能是function或object
     //如果是function，我们认为是组件的render函数
     //如果是object，则将返回的内容注入到上下文中
-    printStage1('开始执行组件setup函数');
+    printStage1('【runtime】开始执行组件setup函数');
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     });
     printSentence1('setup函数执行结果为：', setupResult);
-    printStage2('setup函数执行完成');
+    printStage2('【runtime】setup函数执行完成');
     setCurrentInstance(null);
     // 处理setup返回的结果
     handleSetupResult(instance, setupResult);
@@ -94,22 +94,22 @@ function handleSetupResult(instance, setupResult: any) {
 }
 
 function finishComponentSetup(instance: any) {
-  printStage5('处理转化render函数');
+  printStage5('【runtime】处理转化render函数');
 
   const Component = instance.type;
 
   if (compiler && !Component.render) {
     if (Component.template) {
-      printStage3('通过编译器将模板转化为render函数');
+      printStage3('【compiler】通过编译器将模板转化为render函数');
       Component.render = compiler(Component.template)
-      printStage4('编译转化完成');
+      printStage4('【compiler】编译转化完成');
     }
   }
 
   if (Component.render) {
     instance.render = Component.render;
   }
-  printStage6('处理render函数完成');
+  printStage6('【runtime】处理render函数完成');
 
 }
 

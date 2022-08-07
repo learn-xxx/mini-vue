@@ -10,7 +10,7 @@ export function createAppAPI(render) {
     return {
       mount(rootContainer) {
         printStage('以下为Vue应用创建逻辑：');
-        printStage('根据组件对象创建vnode');
+        printStage('【runtime】根据组件对象创建vnode');
 
         printSentence(rootComponent.name, '组件：', rootComponent)
         //先把component转化成vnode（虚拟结点）

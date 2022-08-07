@@ -297,7 +297,7 @@ export function createRenderer(options: { createElement: any; patchProps: any; i
         // 从而实现使用this.xxx来方便地获取我们需要的值
         const { proxy } = instance;
         const subTree = (instance.subTree = instance.render.call(proxy, proxy));
-        printSentence4('3.执行实例的render函数，渲染子节点', cloneDeep(subTree));
+        printSentence4('执行实例的render函数，渲染子节点', cloneDeep(subTree));
         printTip2('执行render函数时，我们使用bind方法，把我们之前创建的数据代理对象proxy作为函数的this，实现在子组件中通过this.xxx来方便地获取我们需要的值。');
         // 递归调用
         // eslint-disable-next-line no-use-before-define
@@ -341,10 +341,10 @@ export function createRenderer(options: { createElement: any; patchProps: any; i
     // 创建一个组件实例
     // 在vnode上保留实例，在更新的时候可以重新获取到render函数
     const instance = (initialVNode.componentInstance = createComponentInstance(initialVNode, parentComponent));
-    printSentence2('1.先创建组件 ' + initialVNode.type.name + ' 的实例:', cloneDeep(instance));
+    printSentence2('先创建组件 ' + initialVNode.type.name + ' 的实例:', cloneDeep(instance));
     // 初始化组件
     setupComponent(instance);
-    printSentence3('2.对组件进行初始化，例如props、slots、创建代理对象proxy等，当前实例:', cloneDeep(instance));
+    printSentence3('对组件进行初始化，例如props、slots、创建代理对象proxy等，当前实例:', cloneDeep(instance));
     // 对组件进行初次渲染
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
@@ -419,7 +419,7 @@ export function createRenderer(options: { createElement: any; patchProps: any; i
   }
 
   function render(vnode: any, container: any, parentComponent: any) {
-    printStage('根据vnode渲染成HTML元素')
+    printStage('【runtime】根据vnode渲染成HTML元素')
     // patch
     patch(null, vnode, container, parentComponent, null);
   }

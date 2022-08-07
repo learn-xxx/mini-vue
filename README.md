@@ -6,6 +6,8 @@
 
 在commit列表中可以清晰的看到已经实现的功能点。
 
+![image-20220807171040859](https://cdn.jsdelivr.net/gh/Merlin218/image-storage/picGo/202208071710912.png)
+
 ### 文章列表
 
 - [【手写vue3系列】响应式实现](https://juejin.cn/post/7028613132339642382)

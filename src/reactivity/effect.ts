@@ -90,12 +90,12 @@ const printSentence1 = once(printSentence);
 const printSentence2 = once(printSentence);
 
 export function trackEffects(dep) {
-  printStage2('收集依赖开始：')
+  printStage2('【reactive】收集依赖开始')
   printSentence1('当前依赖：', cloneDeep(activeEffect))
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
   printSentence2('依赖树(target -> key -> dep):', targetMap)
-  printStage3('收集依赖结束')
+  printStage3('【reactive】收集依赖结束')
 }
 
 export function isTracking(): Boolean {
@@ -114,13 +114,13 @@ const printStage6 = once(printStage);
 
 export function triggerEffects(dep) {
   for (const effect of dep) {
-    printStage5('触发依赖开始，开始更新数据')
+    printStage5('【reactive】触发依赖开始，开始更新数据')
     if (effect.scheduler) {
       effect.scheduler();
     } else {
       effect.run();
     }
-    printStage6('触发依赖完成，数据已更新')
+    printStage6('【reactive】触发依赖完成，数据已更新')
   }
 }
 

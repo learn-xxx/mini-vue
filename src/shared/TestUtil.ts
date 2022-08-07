@@ -4,7 +4,7 @@ export function printSentence(...note: any[]) {
   if (!checkStatus()) {
     return;
   }
-  console.log(...note)
+  console.log('▶️ ', ...note)
 }
 
 export function printStage(...stage: any[]) {
@@ -41,7 +41,7 @@ export function printTable(prefix: string | null, ...args: any[]) {
   if (!checkStatus()) {
     return;
   }
-  prefix && console.log(prefix);
+  prefix && printSentence(prefix);
   console.table(...args);
 }
 
